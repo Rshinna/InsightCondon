@@ -8,7 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -34,7 +33,7 @@ public class Condominio {
     private Instant createdAt;
 
     public Condominio(String nome, String cnpj, String endereco) {
-        if(nome == null || nome.isBlank()) {
+        if (nome == null || nome.isBlank()) {
             throw new IllegalArgumentException("Nome do condomínio é obrigatório");
         }
         this.condominioId = UUID.randomUUID();
