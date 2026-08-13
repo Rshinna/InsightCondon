@@ -81,14 +81,7 @@ public class ReclamacaoController {
     public ResponseEntity<ReclamacaoResponseDTO> buscarPorId(@PathVariable UUID id) {
         UsuarioAutenticado autenticado = ContextoAutenticacao.usuarioLogado();
         Reclamacao reclamacao = reclamacaoService.buscarPorId(ReclamacaoId.de(id));
-
-        boolean ehMorador = autenticado.perfil().equals("MORADOR");
-        boolean ehAutor = reclamacao.getUsuarioId().equals(autenticado.usuarioId());
-        boolean mesmoCondominio = reclamacao.getCondominioId().equals(autenticado.condominioId());
-
-        if (!mesmoCondominio || (ehMorador && !ehAutor)) {
-            throw new AccessDeniedException("Você não tem permissão para acessar esta reclamação");
-        }
+        reclamacaoService.validarAcesso(reclamacao, autenticado);
         return ResponseEntity.ok(montarResponseComAutor(reclamacao));
     }
 
@@ -101,7 +94,7 @@ public class ReclamacaoController {
         UsuarioAutenticado autenticado = ContextoAutenticacao.usuarioLogado();
         Reclamacao reclamacao = reclamacaoService.buscarPorId(ReclamacaoId.de(id));
 
-        if(!reclamacao.getCondominioId().equals(autenticado.condominioId())) {
+        if (!reclamacao.getCondominioId().equals(autenticado.condominioId())) {
             throw new AccessDeniedException("Você não tem permissão para alterar esta reclamação");
         }
 

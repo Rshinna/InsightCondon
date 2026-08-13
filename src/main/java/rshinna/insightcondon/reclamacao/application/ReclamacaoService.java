@@ -2,6 +2,7 @@ package rshinna.insightcondon.reclamacao.application;
 
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import rshinna.insightcondon.categoria.application.CategoriaService;
@@ -13,6 +14,7 @@ import rshinna.insightcondon.reclamacao.domain.StatusReclamacao;
 import rshinna.insightcondon.reclamacao.domain.Urgencia;
 import rshinna.insightcondon.reclamacao.infrastructure.ReclamacaoRepository;
 import rshinna.insightcondon.shared.exception.RecursoNaoEncontradoException;
+import rshinna.insightcondon.shared.infrastructure.security.UsuarioAutenticado;
 import rshinna.insightcondon.usuario.domain.UsuarioId;
 
 import java.util.List;
@@ -59,5 +61,15 @@ public class ReclamacaoService {
         Reclamacao reclamacao = buscarPorId(reclamacaoId);
         reclamacao.alterarStatus(novoStatus);
         return reclamacao;
+    }
+
+    public void validarAcesso(Reclamacao reclamacao, UsuarioAutenticado usuarioAutenticado) {
+        boolean mesmoCondominio = reclamacao.getCondominioId().equals(usuarioAutenticado.condominioId());
+        boolean ehMorador = usuarioAutenticado.perfil().equals("MORADOR");
+        boolean ehAutor = reclamacao.getUsuarioId().equals(usuarioAutenticado.usuarioId());
+
+        if (!mesmoCondominio || (ehMorador && !ehAutor)) {
+            throw new AccessDeniedException("Você não tem permissão para acessar esta reclamação");
+        }
     }
 }
