@@ -2,12 +2,15 @@ package rshinna.insightcondon.reclamacao.application;
 
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import rshinna.insightcondon.categoria.application.CategoriaService;
 import rshinna.insightcondon.categoria.domain.CategoriaId;
 import rshinna.insightcondon.condominio.domain.CondominioId;
+import rshinna.insightcondon.reclamacao.domain.ClassificacaoIA;
+import rshinna.insightcondon.reclamacao.domain.ClassificadorDeReclamacao;
 import rshinna.insightcondon.reclamacao.domain.Reclamacao;
 import rshinna.insightcondon.reclamacao.domain.ReclamacaoId;
 import rshinna.insightcondon.reclamacao.domain.StatusReclamacao;
@@ -20,6 +23,7 @@ import rshinna.insightcondon.usuario.domain.UsuarioId;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -27,6 +31,7 @@ public class ReclamacaoService {
 
     private final ReclamacaoRepository reclamacaoRepository;
     private final CategoriaService categoriaService;
+    private final ClassificadorDeReclamacao classificadorDeReclamacao;
 
     public Reclamacao registrar(String titulo, String descricao, UUID categoriaId,
                                 UsuarioId usuarioId, CondominioId condominioId,
@@ -38,7 +43,25 @@ public class ReclamacaoService {
         Reclamacao reclamacao = new Reclamacao(titulo, descricao, categoriaId, usuarioId.value(),
                 condominioId.value(), anonimo, urgencia);
 
-        return reclamacaoRepository.save(reclamacao);
+        reclamacaoRepository.save(reclamacao);
+
+        classificarComIA(reclamacao);
+
+        return reclamacao;
+    }
+
+    private void classificarComIA(Reclamacao reclamacao) {
+        try {
+            ClassificacaoIA classificacao = classificadorDeReclamacao.classificar(
+                    reclamacao.getTitulo(), reclamacao.getDescricao());
+
+            if (classificacao.urgenciaSugerida() != null) {
+                reclamacao.aplicarSugestaoIa(null, classificacao.urgenciaSugerida());
+            }
+        } catch (Exception e) {
+            log.warn("Não foi possível classificar a reclamação {} via IA: {}",
+                    reclamacao.getId(), e.getMessage());
+        }
     }
 
     @Transactional(readOnly = true)
