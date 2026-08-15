@@ -16,6 +16,7 @@ public record ReclamacaoResponseDTO(
         boolean anonimo,
         StatusReclamacao status,
         Urgencia urgencia,
+        Urgencia urgenciaSugeridaIa,
         BigDecimal scoreProridade,
         Instant createdAt,
         Instant resolvedAt
@@ -30,6 +31,7 @@ public record ReclamacaoResponseDTO(
                 reclamacao.isAnonimo(),
                 reclamacao.getStatus(),
                 reclamacao.getUrgencia(),
+                reclamacao.getUrgenciaSugeridaIa(),
                 reclamacao.getScorePrioridade(),
                 reclamacao.getCreatedAt(),
                 reclamacao.getResolvedAt()
