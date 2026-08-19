@@ -19,6 +19,8 @@ import rshinna.insightcondon.reclamacao.application.ReclamacaoService;
 import rshinna.insightcondon.reclamacao.domain.Reclamacao;
 import rshinna.insightcondon.reclamacao.domain.ReclamacaoId;
 import rshinna.insightcondon.reclamacao.domain.StatusReclamacao;
+import rshinna.insightcondon.reclamacao.domain.Urgencia;
+import rshinna.insightcondon.reclamacao.infrastructure.web.dto.AjustarUrgenciaRequestDTO;
 import rshinna.insightcondon.reclamacao.infrastructure.web.dto.AlterarStatusRequestDTO;
 import rshinna.insightcondon.reclamacao.infrastructure.web.dto.ReclamacaoRequestDTO;
 import rshinna.insightcondon.reclamacao.infrastructure.web.dto.ReclamacaoResponseDTO;
@@ -101,6 +103,22 @@ public class ReclamacaoController {
         Reclamacao atualizada = reclamacaoService.alterarStatus(
                 ReclamacaoId.de(id), StatusReclamacao.valueOf(dto.status())
         );
+
+        return ResponseEntity.ok(montarResponseComAutor(atualizada));
+    }
+
+    @PatchMapping("/{id}/urgencia")
+    @PreAuthorize("hasAnyRole('SINDICO', 'ADMIN')")
+    public ResponseEntity<ReclamacaoResponseDTO> ajustarUrgencia(
+            @PathVariable UUID id,
+            @Valid @RequestBody AjustarUrgenciaRequestDTO dto) {
+
+        UsuarioAutenticado autenticado = ContextoAutenticacao.usuarioLogado();
+        Reclamacao reclamacao = reclamacaoService.buscarPorId(ReclamacaoId.de(id));
+        reclamacaoService.validarAcesso(reclamacao, autenticado);
+
+        Reclamacao atualizada = reclamacaoService.ajustarUrgencia(
+                ReclamacaoId.de(id), Urgencia.valueOf(dto.urgencia()));
 
         return ResponseEntity.ok(montarResponseComAutor(atualizada));
     }

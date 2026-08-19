@@ -17,7 +17,7 @@ public record ReclamacaoResponseDTO(
         StatusReclamacao status,
         Urgencia urgencia,
         Urgencia urgenciaSugeridaIa,
-        BigDecimal scoreProridade,
+        BigDecimal scorePrioridade,
         Instant createdAt,
         Instant resolvedAt
 ) {

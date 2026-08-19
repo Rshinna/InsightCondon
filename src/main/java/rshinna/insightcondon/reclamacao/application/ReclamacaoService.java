@@ -20,6 +20,7 @@ import rshinna.insightcondon.shared.exception.RecursoNaoEncontradoException;
 import rshinna.insightcondon.shared.infrastructure.security.UsuarioAutenticado;
 import rshinna.insightcondon.usuario.domain.UsuarioId;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,6 +33,7 @@ public class ReclamacaoService {
     private final ReclamacaoRepository reclamacaoRepository;
     private final CategoriaService categoriaService;
     private final ClassificadorDeReclamacao classificadorDeReclamacao;
+    private final ScoreCalculadorService scoreCalculadorService;
 
     public Reclamacao registrar(String titulo, String descricao, UUID categoriaId,
                                 UsuarioId usuarioId, CondominioId condominioId,
@@ -43,10 +45,23 @@ public class ReclamacaoService {
         Reclamacao reclamacao = new Reclamacao(titulo, descricao, categoriaId, usuarioId.value(),
                 condominioId.value(), anonimo, urgencia);
 
-        reclamacaoRepository.save(reclamacao);
+        Reclamacao salva = reclamacaoRepository.save(reclamacao);
 
-        classificarComIA(reclamacao);
+        classificarComIA(salva);
+        recalcularScore(salva);
 
+        return salva;
+    }
+
+    private void recalcularScore(Reclamacao reclamacao) {
+        BigDecimal novoScore = scoreCalculadorService.calcular(reclamacao);
+        reclamacao.atualizarScorePrioridade(novoScore);
+    }
+
+    public Reclamacao ajustarUrgencia(ReclamacaoId reclamacaoId, Urgencia novaUrgencia) {
+        Reclamacao reclamacao = buscarPorId(reclamacaoId);
+        reclamacao.ajustarUrgencia(novaUrgencia);
+        recalcularScore(reclamacao);
         return reclamacao;
     }
 

@@ -113,19 +113,30 @@ public class Reclamacao {
         this.updatedAt = Instant.now();
     }
 
-    public void aplicarSugestaoIa(UUID categoriaSugerida, Urgencia urgenciaSugeridaIa) {
-        this.urgenciaSugeridaIa = urgenciaSugeridaIa;
+    public void aplicarSugestaoIa(UUID categoriaSugerida, Urgencia urgenciaSugerida) {
+        this.urgenciaSugeridaIa = urgenciaSugerida;
+        if (urgenciaSugerida != null) {
+            this.urgencia = urgenciaSugerida;
+        }
         if (this.categoriaId == null && categoriaSugerida != null) {
             this.categoriaId = categoriaSugerida;
         }
         this.updatedAt = Instant.now();
     }
 
-    public boolean deveExibirAutor(){
+    public void ajustarUrgencia(Urgencia novaUrgencia){
+        if(novaUrgencia == null){
+            throw new IllegalArgumentException("Ugência é onrigatória");
+        }
+        this.urgencia = novaUrgencia;
+        this.updatedAt = Instant.now();
+    }
+
+    public boolean deveExibirAutor() {
         return !this.anonimo;
     }
 
-    public ReclamacaoId getId(){
+    public ReclamacaoId getId() {
         return ReclamacaoId.de(this.reclamacaoId);
     }
 }
